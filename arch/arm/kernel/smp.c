@@ -312,9 +312,13 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	smp_store_cpu_info(cpu);
 
 	/*
-	 * OK, now it's safe to let the boot CPU continue.
+	 * OK, now it's safe to let the boot CPU continue.  Wait for
+	 * the CPU migration code to notice that the CPU is online
+	 * before we continue.
 	 */
 	set_cpu_online(cpu, true);
+	while (!cpu_active(cpu))
+		cpu_relax();
 
 	/*
 	 * Setup the percpu timer for this CPU.
