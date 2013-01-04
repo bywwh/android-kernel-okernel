@@ -60,6 +60,7 @@ struct rtnl_link {
 };
 
 static DEFINE_MUTEX(rtnl_mutex);
+static u16 min_ifinfo_dump_size;
 
 void rtnl_lock(void)
 {
@@ -1874,10 +1875,11 @@ static u16 rtnl_calcit(struct sk_buff *skb, struct nlmsghdr *nlh)
 	u32 ext_filter_mask = 0;
 	u16 min_ifinfo_dump_size = 0;
 
-	nlmsg_parse(nlh, sizeof(struct rtgenmsg), tb, IFLA_MAX, ifla_policy);
-
-	if (tb[IFLA_EXT_MASK])
-		ext_filter_mask = nla_get_u32(tb[IFLA_EXT_MASK]);
+	if (nlmsg_parse(nlh, sizeof(struct ifinfomsg), tb, IFLA_MAX,
+			ifla_policy) >= 0) {
+		if (tb[IFLA_EXT_MASK])
+			ext_filter_mask = nla_get_u32(tb[IFLA_EXT_MASK]);
+	}
 
 	if (!ext_filter_mask)
 		return NLMSG_GOODSIZE;
@@ -2008,7 +2010,7 @@ static int rtnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 		struct rtattr *attr = (void *)nlh + NLMSG_ALIGN(min_len);
 
 		while (RTA_OK(attr, attrlen)) {
-			unsigned flavor = attr->rta_type;
+			unsigned int flavor = attr->rta_type & NLA_TYPE_MASK;
 			if (flavor) {
 				if (flavor > rta_max[sz_idx])
 					return -EINVAL;
