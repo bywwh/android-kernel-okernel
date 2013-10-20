@@ -14,13 +14,6 @@
  * version 2. This program is licensed "as is" without any warranty of any
  * kind, whether express or implied.
  */
-/*============================================================================================
- *
- *histroy
- *
- * DTS                 who          when         why
- *============================================================================================
- */
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/debugfs.h>
@@ -176,7 +169,8 @@
 #define OMAP_MMC4_DEVID		3
 #define OMAP_MMC5_DEVID		4
 
-#define MMC_TIMEOUT_MS		20
+#define MMC_TIMEOUT_MS         20              /* 20 mSec */
+#define MMC_TIMEOUT_US         20000           /* 20000 micro Sec */
 #define OMAP_MMC_MASTER_CLOCK	96000000
 #ifdef CONFIG_OMAP4_DPLL_CASCADING
 #define OMAP_MMC_DPLL_CLOCK	49152000
@@ -1163,7 +1157,7 @@ static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host *host,
 						   unsigned long bit)
 {
 	unsigned long i = 0;
-	unsigned long limit = MMC_TIMEOUT_MS * 1000; /* usecs */
+	unsigned long limit = MMC_TIMEOUT_US;
 
 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
 			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
