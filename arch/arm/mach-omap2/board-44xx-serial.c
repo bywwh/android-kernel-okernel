@@ -39,6 +39,7 @@ static struct omap_device_pad tablet_uart1_pads[] __initdata = {
 	},
 };
 
+#if 0
 static struct omap_device_pad tablet_uart2_pads[] __initdata = {
 	{
 		.name	= "uart2_cts.uart2_cts",
@@ -62,6 +63,8 @@ static struct omap_device_pad tablet_uart2_pads[] __initdata = {
 		.enable	= OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
 	},
 };
+#endif
+
 static struct omap_device_pad blaze_uart2_pads[] __initdata = {
     {
         .name    = "uart2_cts.uart2_cts",
@@ -86,6 +89,7 @@ static struct omap_device_pad blaze_uart2_pads[] __initdata = {
     },
 };
 
+#if 0
 static struct omap_device_pad tablet_uart3_pads[] __initdata = {
 	{
 		.name	= "uart3_cts_rctx.uart3_cts_rctx",
@@ -106,6 +110,7 @@ static struct omap_device_pad tablet_uart3_pads[] __initdata = {
 		.idle	= OMAP_PIN_INPUT | OMAP_MUX_MODE0,
 	},
 };
+#endif
 
 static struct omap_device_pad tablet_uart4_pads[] __initdata = {
 	{
@@ -129,6 +134,7 @@ static struct omap_uart_port_info tablet_uart_info_uncon __initdata = {
 	.wer = 0,
 };
 
+#if 0
 static struct omap_uart_port_info tablet_uart_info __initdata = {
 	.use_dma	= 0,
 	.dma_rx_timeout = DEFAULT_RXDMA_TIMEOUT,
@@ -147,6 +153,7 @@ static struct omap_uart_port_info tablet_wilink_uart_info __initdata = {
 	.wer = (OMAP_UART_WER_TX | OMAP_UART_WER_RX | OMAP_UART_WER_CTS),
 	.rts_mux_driver_control = 1,
 };
+#endif
 
 static struct omap_uart_port_info blaze_uart_info_bt __initdata = {
     .use_dma    = 0,
@@ -161,8 +168,10 @@ void __init board_serial_init(void)
 		ARRAY_SIZE(tablet_uart1_pads), &tablet_uart_info_uncon);
 	omap_serial_init_port_pads(1, blaze_uart2_pads,
 		ARRAY_SIZE(blaze_uart2_pads), &blaze_uart_info_bt);
+#if 0
 	omap_serial_init_port_pads(2, tablet_uart3_pads,
 		ARRAY_SIZE(tablet_uart3_pads), &tablet_uart_info);
+#endif
 	omap_serial_init_port_pads(3, tablet_uart4_pads,
 		ARRAY_SIZE(tablet_uart4_pads), &tablet_uart_info_uncon);
 }
