@@ -20,10 +20,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- /*================================================================================
-                          EDIT HISTORY FOR MODULE      
-  case      	      who           when            what, where, why
-================================================================================*/  
 #include <linux/module.h>
 #include <linux/tty.h>
 #include <linux/slab.h>
@@ -39,8 +35,6 @@
 
 #include <asm/irq.h>
 #include <asm/uaccess.h>
-
-#include <net/bluetooth/bluetooth.h>
 
 /*
  * This is used to lock changes in serial line configuration.
@@ -525,10 +519,7 @@ static int uart_write(struct tty_struct *tty,
 
 	if (!circ->buf)
 		return 0;
-        if (tty->name && !strcmp(tty->name, "ttyO1")){
-            //printk(KERN_INFO "outgoing data, tty->name is [%s]\n", tty->name);
-            bluesleep_outgoing_data();
-        }
+
 	spin_lock_irqsave(&port->lock, flags);
 	while (1) {
 		c = CIRC_SPACE_TO_END(circ->head, circ->tail, UART_XMIT_SIZE);
@@ -1276,10 +1267,6 @@ static void uart_close(struct tty_struct *tty, struct file *filp)
 	uport = state->uart_port;
 	port = &state->port;
 
-        if (tty->name && !strcmp(tty->name, "ttyO1")){
-            printk(KERN_INFO "uart close, tty->name is [%s]\n", tty->name);
-            bluesleep_uart_close(uport);
-        }
 	pr_debug("uart_close(%d) called\n", uport->line);
 
 	mutex_lock(&port->mutex);
@@ -1597,11 +1584,6 @@ static int uart_open(struct tty_struct *tty, struct file *filp)
 	mutex_unlock(&port->mutex);
 	if (retval == 0)
 		retval = tty_port_block_til_ready(port, tty, filp);
-
-        if (tty->name && !strcmp(tty->name, "ttyO1")){
-            printk(KERN_INFO "uart open, tty->name is [%s]\n", tty->name);
-            bluesleep_uart_open(state->uart_port);
-        }
 
 fail:
 	return retval;
@@ -2018,18 +2000,13 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
 		memset(&termios, 0, sizeof(struct ktermios));
 		termios.c_cflag = uport->cons->cflag;
 
-		if (console_suspend_enabled)
-			uart_change_pm(state, 0);
 		/*
 		 * If that's unset, use the tty termios setting.
 		 */
-		if (termios.c_cflag)
-			uport->ops->set_termios(uport, &termios, NULL);
-		else if (port->tty && port->tty->termios) {
+		if (port->tty && port->tty->termios && termios.c_cflag == 0)
 			termios = *(port->tty->termios);
-			uport->ops->set_termios(uport, &termios, NULL);
-		}
 
+		uport->ops->set_termios(uport, &termios, NULL);
 		if (console_suspend_enabled)
 			console_start(uport->cons);
 	}
@@ -2413,12 +2390,12 @@ int uart_add_one_port(struct uart_driver *drv, struct uart_port *uport)
 	 * setserial to be used to alter this ports parameters.
 	 */
 	tty_dev = tty_register_device(drv->tty_driver, uport->line, uport->dev);
-	if (likely(!IS_ERR(tty_dev)))
-		device_set_wakeup_capable(tty_dev, 1);
-	else
+	if (likely(!IS_ERR(tty_dev))) {
+		//device_init_wakeup(tty_dev, 1);
+		//device_set_wakeup_enable(tty_dev, 0);
+	} else
 		printk(KERN_ERR "Cannot register tty device on line %d\n",
 		       uport->line);
-
 	/*
 	 * Ensure UPF_DEAD is not set.
 	 */
