@@ -484,7 +484,7 @@ static __u32 const twist_table[8] = {
  * the entropy is concentrated in the low-order bits.
  */
 static void _mix_pool_bytes(struct entropy_store *r, const void *in,
-			   int nbytes, __u8 out[64])
+			    int nbytes, __u8 out[64])
 {
 	unsigned long i, j, tap1, tap2, tap3, tap4, tap5;
 	int input_rotate;
@@ -537,14 +537,14 @@ static void _mix_pool_bytes(struct entropy_store *r, const void *in,
 }
 
 static void __mix_pool_bytes(struct entropy_store *r, const void *in,
-			    int nbytes, __u8 out[64])
+			     int nbytes, __u8 out[64])
 {
 	trace_mix_pool_bytes_nolock(r->name, nbytes, _RET_IP_);
 	_mix_pool_bytes(r, in, nbytes, out);
 }
 
 static void mix_pool_bytes(struct entropy_store *r, const void *in,
-			  int nbytes, __u8 out[64])
+			   int nbytes, __u8 out[64])
 {
 	unsigned long flags;
 
@@ -613,8 +613,8 @@ retry:
 			r->initialized = 1;
 	}
 
-trace_credit_entropy_bits(r->name, nbits, entropy_count,
-			  r->entropy_total, _RET_IP_);
+	trace_credit_entropy_bits(r->name, nbits, entropy_count,
+				  r->entropy_total, _RET_IP_);
 
 	/* should we wake readers? */
 	if (r == &input_pool && entropy_count >= random_read_wakeup_thresh) {
@@ -815,7 +815,7 @@ static ssize_t extract_entropy(struct entropy_store *r, void *buf,
  */
 static void xfer_secondary_pool(struct entropy_store *r, size_t nbytes)
 {
-	__u32 tmp[OUTPUT_POOL_WORDS];
+	__u32	tmp[OUTPUT_POOL_WORDS];
 
 	if (r->pull && r->entropy_count < nbytes * 8 &&
 	    r->entropy_count < r->poolinfo->POOLBITS) {
@@ -939,7 +939,7 @@ static void extract_buf(struct entropy_store *r, __u8 *out)
 	/*
 	 * If we have a architectural hardware random number
 	 * generator, mix that in, too.
-	*/
+	 */
 	for (i = 0; i < LONGS(EXTRACT_SIZE); i++) {
 		unsigned long v;
 		if (!arch_get_random_long(&v))
@@ -952,7 +952,7 @@ static void extract_buf(struct entropy_store *r, __u8 *out)
 }
 
 static ssize_t extract_entropy(struct entropy_store *r, void *buf,
-				size_t nbytes, int min, int reserved)
+				 size_t nbytes, int min, int reserved)
 {
 	ssize_t ret = 0, i;
 	__u8 tmp[EXTRACT_SIZE];
