@@ -1070,38 +1070,6 @@ EXPORT_SYMBOL(get_random_bytes_arch);
 
 
 /*
- * This function will use the architecture-specific hardware random
- * number generator if it is available.  The arch-specific hw RNG will
- * almost certainly be faster than what we can do in software, but it
- * is impossible to verify that it is implemented securely (as
- * opposed, to, say, the AES encryption of a sequence number using a
- * key known by the NSA).  So it's useful if we need the speed, but
- * only if we're willing to trust the hardware manufacturer not to
- * have put in a back door.
- */
-void get_random_bytes_arch(void *buf, int nbytes)
-{
-	char *p = buf;
-
-	while (nbytes) {
-		unsigned long v;
-		int chunk = min(nbytes, (int)sizeof(unsigned long));
-
-		if (!arch_get_random_long(&v))
-			break;
-
-		memcpy(buf, &v, chunk);
-		p += chunk;
-		nbytes -= chunk;
-	}
-
-	if (nbytes)
-		extract_entropy(&nonblocking_pool, p, nbytes, 0, 0);
-}
-EXPORT_SYMBOL(get_random_bytes_arch);
-
-
-/*
  * init_std_data - initialize pool with system data
  *
  * @r: pool to initialize
