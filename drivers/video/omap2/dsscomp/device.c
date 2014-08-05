@@ -477,7 +477,7 @@ static long comp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case DSSCIOC_SETUP_MGR:
 	{
 		r = copy_from_user(&u.m.set, ptr, sizeof(u.m.set)) ? :
-		    u.m.set.num_ovls >= ARRAY_SIZE(u.m.ovl) ? -EINVAL :
+		    u.m.set.num_ovls > ARRAY_SIZE(u.m.ovl) ? -EINVAL :
 		    copy_from_user(&u.m.ovl,
 				(void __user *)arg + sizeof(u.m.set),
 				sizeof(*u.m.ovl) * u.m.set.num_ovls) ? :
@@ -653,7 +653,9 @@ void dsscomp_kdump(void)
 	};
 	int i;
 
+#ifdef CONFIG_DSSCOMP_DEBUG_LOG
 	dsscomp_dbg_events(&s);
+#endif
 	dsscomp_dbg_comps(&s);
 	dsscomp_dbg_gralloc(&s);
 
