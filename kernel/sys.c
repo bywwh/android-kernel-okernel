@@ -320,7 +320,6 @@ void kernel_restart_prepare(char *cmd)
 	system_state = SYSTEM_RESTART;
 	usermodehelper_disable();
 	device_shutdown();
-	disable_nonboot_cpus();
 	syscore_shutdown();
 }
 
