@@ -2010,6 +2010,8 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
 		if (port->tty && port->tty->termios && termios.c_cflag == 0)
 			termios = *(port->tty->termios);
 
+		if (console_suspend_enabled)
+			uart_change_pm(state, 0);
 		uport->ops->set_termios(uport, &termios, NULL);
 		if (console_suspend_enabled)
 			console_start(uport->cons);
@@ -2396,11 +2398,12 @@ int uart_add_one_port(struct uart_driver *drv, struct uart_port *uport)
 	 */
 	tty_dev = tty_register_device(drv->tty_driver, uport->line, uport->dev);
 	if (likely(!IS_ERR(tty_dev))) {
-		//device_init_wakeup(tty_dev, 1);
-		//device_set_wakeup_enable(tty_dev, 0);
+		device_init_wakeup(tty_dev, 1);
+		device_set_wakeup_enable(tty_dev, 0);
 	} else
 		printk(KERN_ERR "Cannot register tty device on line %d\n",
 		       uport->line);
+
 	/*
 	 * Ensure UPF_DEAD is not set.
 	 */
