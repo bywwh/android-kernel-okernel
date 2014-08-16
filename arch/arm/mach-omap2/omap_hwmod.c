@@ -152,7 +152,7 @@
 #include "prm44xx.h"
 #include "mux.h"
 #include "pm.h"
-#include "board-tuna.h"
+#include "board-blaze.h"
 
 /* Maximum microseconds to wait for OMAP module to softreset */
 #define MAX_MODULE_SOFTRESET_WAIT	10000
