@@ -942,6 +942,7 @@ CONFIG_BT_HCIUART_H4=y
 # CONFIG_BT_HCIBFUSB is not set
 # CONFIG_BT_HCIVHCI is not set
 # CONFIG_BT_MRVL is not set
+# CONFIG_BT_WILINK is not set
 CONFIG_BT_BCM_POWER=y
 CONFIG_BT_BCM_HID=y
 # CONFIG_AF_RXRPC is not set
@@ -1144,7 +1145,7 @@ CONFIG_CDC_TCXO=y
 #
 # Texas Instruments shared transport line discipline
 #
-# CONFIG_TI_ST is not set
+CONFIG_TI_ST=y
 # CONFIG_ST_GPS is not set
 # CONFIG_SENSORS_LIS3_SPI is not set
 # CONFIG_SENSORS_LIS3_I2C is not set
@@ -1165,7 +1166,7 @@ CONFIG_SCSI=y
 CONFIG_SCSI_DMA=y
 # CONFIG_SCSI_TGT is not set
 # CONFIG_SCSI_NETLINK is not set
-CONFIG_SCSI_PROC_FS=y
+# CONFIG_SCSI_PROC_FS is not set
 
 #
 # SCSI support type (disk, tape, CD-ROM)
@@ -1191,12 +1192,7 @@ CONFIG_SCSI_WAIT_SCAN=m
 # CONFIG_SCSI_SAS_ATTRS is not set
 # CONFIG_SCSI_SAS_LIBSAS is not set
 # CONFIG_SCSI_SRP_ATTRS is not set
-CONFIG_SCSI_LOWLEVEL=y
-# CONFIG_ISCSI_TCP is not set
-# CONFIG_ISCSI_BOOT_SYSFS is not set
-# CONFIG_LIBFC is not set
-# CONFIG_LIBFCOE is not set
-# CONFIG_SCSI_DEBUG is not set
+# CONFIG_SCSI_LOWLEVEL is not set
 # CONFIG_SCSI_DH is not set
 # CONFIG_SCSI_OSD_INITIATOR is not set
 # CONFIG_ATA is not set
@@ -1222,7 +1218,7 @@ CONFIG_IFB=y
 # CONFIG_EQUALIZER is not set
 CONFIG_TUN=y
 # CONFIG_VETH is not set
-CONFIG_MII=y
+# CONFIG_MII is not set
 # CONFIG_PHYLIB is not set
 CONFIG_NET_ETHERNET=y
 # CONFIG_AX88796 is not set
@@ -2260,7 +2256,6 @@ CONFIG_USB_STORAGE=y
 # CONFIG_USB_STORAGE_KARMA is not set
 # CONFIG_USB_STORAGE_CYPRESS_ATACB is not set
 # CONFIG_USB_STORAGE_ENE_UB6250 is not set
-# CONFIG_USB_UAS is not set
 # CONFIG_USB_LIBUSUAL is not set
 
 #
