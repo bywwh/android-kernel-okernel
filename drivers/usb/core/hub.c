@@ -2454,6 +2454,9 @@ static int finish_port_resume(struct usb_device *udev)
  retry_reset_resume:
 		status = usb_reset_and_verify_device(udev);
 
+	if (udev->quirks & USB_QUIRK_NO_GET_STATUS)
+		goto done;
+
  	/* 10.5.4.5 says be sure devices in the tree are still there.
  	 * For now let's assume the device didn't go crazy on resume,
 	 * and device drivers will know about any resume quirks.
@@ -2499,6 +2502,7 @@ static int finish_port_resume(struct usb_device *udev)
 		}
 		status = 0;
 	}
+done:
 	return status;
 }
 
@@ -4086,3 +4090,18 @@ void usb_queue_reset_device(struct usb_interface *iface)
 	schedule_work(&iface->reset_ws);
 }
 EXPORT_SYMBOL_GPL(usb_queue_reset_device);
+
+void usb_force_disconnect(struct usb_device *udev)
+{
+       struct usb_hub                  *parent_hub;
+       int                             port1 = udev->portnum;
+
+       if (!udev->parent)
+               return;
+
+       parent_hub = hdev_to_hub(udev->parent);
+       if (!parent_hub)
+               return;
+
+       hub_port_logical_disconnect(parent_hub, port1);
+}
