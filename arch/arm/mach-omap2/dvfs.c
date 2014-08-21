@@ -1001,7 +1001,7 @@ int omap_device_scale(struct device *req_dev, struct device *target_dev,
 		opp = opp_find_freq_floor(target_dev, &freq);
 	if (IS_ERR(opp)) {
 		rcu_read_unlock();
-		dev_err(target_dev, "%s: Unable to find OPP for freq%ld\n",
+		dev_err(target_dev, "%s: Unable to find OPP for freq %ld\n",
 			__func__, rate);
 		ret = -ENODEV;
 		goto out;

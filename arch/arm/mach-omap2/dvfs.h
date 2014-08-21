@@ -39,6 +39,7 @@ static inline int omap_device_scale(struct device *req_dev,
 {
 	return -EINVAL;
 }
+
 static inline bool omap_dvfs_is_any_dev_scaling(void)
 {
 	return false;
