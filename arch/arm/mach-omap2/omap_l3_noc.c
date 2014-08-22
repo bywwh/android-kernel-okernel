@@ -28,6 +28,7 @@
 #include <linux/slab.h>
 
 #include "omap_l3_noc.h"
+#include "board-blaze.h"
 
 #define NUM_OF_L3_MASTERS ARRAY_SIZE(l3_masters)
 
