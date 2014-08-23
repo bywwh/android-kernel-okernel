@@ -39,6 +39,7 @@ static inline dma_addr_t virt_to_dma(struct device *dev, void *addr)
 {
 	return (dma_addr_t)__virt_to_bus((unsigned long)(addr));
 }
+
 #else
 static inline dma_addr_t pfn_to_dma(struct device *dev, unsigned long pfn)
 {
@@ -60,6 +61,13 @@ static inline dma_addr_t virt_to_dma(struct device *dev, void *addr)
 	return __arch_virt_to_dma(dev, addr);
 }
 #endif
+
+/* The ARM override for dma_max_pfn() */
+static inline unsigned long dma_max_pfn(struct device *dev)
+{
+	return PHYS_PFN_OFFSET + dma_to_pfn(dev, *dev->dma_mask);
+}
+#define dma_max_pfn(dev) dma_max_pfn(dev)
 
 /*
  * The DMA API is built upon the notion of "buffer ownership".  A buffer
@@ -251,6 +259,14 @@ extern void *dma_alloc_stronglyordered(struct device *, size_t, dma_addr_t *,
 
 #define dma_free_stronglyordered(dev, size, cpu_addr, handle) \
 	dma_free_coherent(dev, size, cpu_addr, handle)
+
+/*
+ * This can be called during boot to increase the size of the consistent
+ * DMA region above it's default value of 2MB. It must be called before the
+ * memory allocator is initialised, i.e. before any core_initcall.
+ */
+extern void __init init_consistent_dma_size(unsigned long size);
+
 
 #ifdef CONFIG_DMABOUNCE
 /*
