@@ -348,8 +348,8 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_KERNEL	= -O2 -mtune=cortex-a9 -ftree-vectorize -ffast-math -fsingle-precision-constant
-AFLAGS_KERNEL	= -O2 -mtune=cortex-a9 -ftree-vectorize -ffast-math -fsingle-precision-constant
+CFLAGS_MODULE   = -fno-pic
+AFLAGS_MODULE   =
 LDFLAGS_MODULE  =
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
