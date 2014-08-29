@@ -673,28 +673,6 @@ static void __init omap4_abb_trim_update(
 }
 
 /**
- * omap4_abb_update() - update the ABB map for a specific voltage in table
- * @vtable:    voltage table to update
- * @voltage:   voltage whose voltage data needs update
- * @abb_type:  what ABB type should we update it to?
- */
-static void __init omap4_abb_update(struct omap_volt_data *vtable,
-                                   unsigned long voltage, int abb_type)
-{
-	/* scan through and update the voltage table */
-	while (vtable->volt_nominal) {
-		if (vtable->volt_nominal == voltage) {
-			vtable->abb_type = abb_type;
-			return;
-		}
-		vtable++;
-	}
-	/* WARN noticably to get the developer to fix */
-	WARN(1, "%s: voltage %ld could not be set to ABB %d\n",
-		__func__, voltage, abb_type);
-}
-
-/**
  * omap4460_abb_update() - update the abb mapping quirks for OMAP4460
  */
 static void __init omap4460_abb_update(void)
