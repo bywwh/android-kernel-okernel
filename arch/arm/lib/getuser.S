@@ -34,7 +34,7 @@
 
 ENTRY(__get_user_1)
 	check_uaccess r0, 1, r1, r2, __get_user_bad
-1:	T(ldrb)	r2, [r0]
+1: TUSER(ldrb)	r2, [r0]
 	mov	r0, #0
 	mov	pc, lr
 ENDPROC(__get_user_1)
@@ -50,6 +50,13 @@ rb	.req	r0
 2:	ldrb	r2, [r0]
 3:	ldrb	rb, [r0, #1]
 #endif
+#ifdef CONFIG_THUMB2_KERNEL
+2: TUSER(ldrb)	r2, [r0]
+3: TUSER(ldrb)	r3, [r0, #1]
+#else
+2: TUSER(ldrb)	r2, [r0], #1
+3: TUSER(ldrb)	r3, [r0]
+#endif
 #ifndef __ARMEB__
 	orr	r2, r2, rb, lsl #8
 #else
@@ -61,7 +68,7 @@ ENDPROC(__get_user_2)
 
 ENTRY(__get_user_4)
 	check_uaccess r0, 4, r1, r2, __get_user_bad
-4:	T(ldr)	r2, [r0]
+4: TUSER(ldr)	r2, [r0]
 	mov	r0, #0
 	mov	pc, lr
 ENDPROC(__get_user_4)
