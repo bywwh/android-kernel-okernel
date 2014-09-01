@@ -28,8 +28,6 @@ static inline bool omap_dvfs_is_any_dev_scaling(void)
 {
 	return mutex_is_locked(&omap_dvfs_lock);
 }
-
-bool omap_dvfs_is_scaling(struct voltagedomain *voltdm);
 #else
 static inline int omap_dvfs_register_device(struct device *dev,
 		char *voltdm_name, char *clk_name)
@@ -42,7 +40,6 @@ static inline int omap_device_scale(struct device *req_dev,
 	return -EINVAL;
 }
 static inline bool omap_dvfs_is_any_dev_scaling(void)
-static inline bool omap_dvfs_is_scaling(struct voltagedomain *voltdm)
 {
 	return false;
 }
