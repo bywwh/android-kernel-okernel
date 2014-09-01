@@ -597,20 +597,6 @@ static void mmc_sdio_detect(struct mmc_host *host)
 
 	mmc_release_host(host);
 
-	/*
-	 * Tell PM core it's OK to power off the card now.
-	 *
-	 * The _sync variant is used in order to ensure that the card
-	 * is left powered off in case an error occurred, and the card
-	 * is going to be removed.
-	 *
-	 * Since there is no specific reason to believe a new user
-	 * is about to show up at this point, the _sync variant is
-	 * desirable anyway.
-	 */
-	if (host->caps & MMC_CAP_POWER_OFF_CARD)
-		pm_runtime_put_sync(&host->card->dev);
-
 out:
 	if (err) {
 		mmc_sdio_remove(host);
@@ -619,6 +605,9 @@ out:
 		mmc_detach_bus(host);
 		mmc_power_off(host);
 		mmc_release_host(host);
+
+	/* Tell PM core that we're done */
+	pm_runtime_put(&host->card->dev);
 	}
 }
 

@@ -347,6 +347,10 @@ void __init omap_ldo_abb_init(struct voltagedomain *voltdm)
 		    wait_count_val << __ffs(abb->setup_bits->wait_count_mask),
 		    abb->setup_reg);
 
+	/* Allow Forward Body-Bias */
+	voltdm->rmw(abb->setup_bits->active_fbb_mask,
+		    abb->setup_bits->active_fbb_mask, abb->setup_reg);
+
 	/* Enable ABB */
 	_abb_set_availability(voltdm, abb, true);
 
