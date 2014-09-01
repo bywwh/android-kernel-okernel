@@ -2247,7 +2247,7 @@ static struct omap_dss_board_info sdp4430_dss_data = {
 #endif
 };
 
-#define BLAZE_FB_RAM_SIZE                SZ_16M /* 1920脳1080*4 * 2 */
+#define BLAZE_FB_RAM_SIZE	(SZ_1M * 12) // 1280 * 720 * 4 (32 bits) * 3 (triple buffering), succeeding memory page tabe aligned.
 static struct omapfb_platform_data blaze_fb_pdata = {
     .mem_desc = {
         .region_cnt = 1,

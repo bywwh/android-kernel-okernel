@@ -683,11 +683,7 @@ static void add_timer_randomness(struct timer_rand_state *state, unsigned num)
 		goto out;
 
 	sample.jiffies = jiffies;
-
-	/* Use arch random value, fall back to cycles */
-	if (!arch_get_random_int(&sample.cycles))
-		sample.cycles = get_cycles();
-
+	sample.cycles = get_cycles();
 	sample.num = num;
 	mix_pool_bytes(&input_pool, &sample, sizeof(sample), NULL);
 
@@ -1036,31 +1032,17 @@ static ssize_t extract_entropy_user(struct entropy_store *r, void __user *buf,
  */
 void get_random_bytes(void *buf, int nbytes)
 {
-	char *p = buf;
-
-	while (nbytes) {
-		unsigned long v;
-		int chunk = min(nbytes, (int)sizeof(unsigned long));
-
-		if (!arch_get_random_long(&v))
-			break;
-
-		memcpy(p, &v, chunk);
-		p += chunk;
-		nbytes -= chunk;
-	}
-
-	extract_entropy(&nonblocking_pool, p, nbytes, 0, 0);
+	extract_entropy(&nonblocking_pool, buf, nbytes, 0, 0);
 }
 EXPORT_SYMBOL(get_random_bytes);
 
 /*
  * This function will use the architecture-specific hardware random
- * number generator if it is available. The arch-specific hw RNG will
+ * number generator if it is available.  The arch-specific hw RNG will
  * almost certainly be faster than what we can do in software, but it
  * is impossible to verify that it is implemented securely (as
  * opposed, to, say, the AES encryption of a sequence number using a
- * key known by the NSA). So it's useful if we need the speed, but
+ * key known by the NSA).  So it's useful if we need the speed, but
  * only if we're willing to trust the hardware manufacturer not to
  * have put in a back door.
  */
