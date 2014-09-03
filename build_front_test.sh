@@ -14,7 +14,7 @@
 export ARCH=arm
 export SUBARCH=arm
 export CROSS_COMPILE=~/AndroidSources/linaro-4.9.1/bin/arm-eabi-
-export LOCALVERSION="-v3"
+export LOCALVERSION="-test"
 export CCACHE_DIR=~/.ccache/kernel
 ccache -M 5G
 ##############################################################################
@@ -27,7 +27,7 @@ STRIP=${CROSS_COMPILE}strip
 # make zImage
 ##############################################################################
 mkdir -p $KERNEL_OUT
-make O=$KERNEL_OUT front_defconfig
+make O=$KERNEL_OUT front_defconfig_test
 make -j10 O=$KERNEL_OUT
 
 if [ -f $KERNEL_OUT/arch/arm/boot/zImage ]
