@@ -27,7 +27,7 @@ STRIP=${CROSS_COMPILE}strip
 # make zImage
 ##############################################################################
 mkdir -p $KERNEL_OUT
-make O=$KERNEL_OUT front_defconfig_test
+make O=$KERNEL_OUT front_test_defconfig
 make -j10 O=$KERNEL_OUT
 
 if [ -f $KERNEL_OUT/arch/arm/boot/zImage ]
