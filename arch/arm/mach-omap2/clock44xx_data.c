@@ -21,9 +21,6 @@
  * XXX Some of the ES1 clocks have been removed/changed; once support
  * is added for discriminating clocks by ES level, these should be added back
  * in.
- *
- * History
- * DTS ID:            Author:    Date:       Modification:
  */
 
 #include <linux/kernel.h>
@@ -193,7 +190,7 @@ static const struct clksel sys_clkin_sel[] = {
 
 static struct clk sys_clkin_ck = {
 	.name		= "sys_clkin_ck",
-	.rate		= 26000000,
+	.rate		= 38400000,
 	.clksel		= sys_clkin_sel,
 	.init		= &omap2_init_clksel_parent,
 	.clksel_reg	= OMAP4430_CM_SYS_CLKSEL,
@@ -793,6 +790,14 @@ static struct clk virt_dsp_ck = {
 	.ops		= &clkops_null,
 	.round_rate	= &omap4_virt_dsp_round_rate,
 	.set_rate	= &omap4_virt_dsp_set_rate,
+};
+
+static struct clk virt_lcd_pclk = {
+	.name		= "virt_lcd_pclk",
+	.parent		= NULL,
+	.ops		= &clkops_null,
+	.round_rate	= &clk_dummy_round_rate,
+	.set_rate	= &clk_dummy_set_rate,
 };
 
 /* DPLL_MPU */
@@ -3561,6 +3566,7 @@ static struct omap_clk omap44xx_clks[] = {
 	CLK(NULL,	"dpll_iva_m5x2_ck",		&dpll_iva_m5x2_ck,	CK_44XX),
 	CLK(NULL,	"virt_iva_ck",			&virt_iva_ck,	CK_44XX),
 	CLK(NULL,	"virt_dsp_ck",			&virt_dsp_ck,	CK_44XX),
+	CLK(NULL,	"virt_lcd_pclk",		&virt_lcd_pclk,	CK_44XX),
 	CLK(NULL,	"dpll_mpu_ck",			&dpll_mpu_ck,	CK_44XX),
 	CLK(NULL,	"virt_dpll_mpu_ck",		&virt_dpll_mpu_ck,	(CK_446X | CK_447X)),
 	CLK(NULL,	"dpll_mpu_m2_ck",		&dpll_mpu_m2_ck,	CK_44XX),
@@ -3936,11 +3942,11 @@ static int omap4_virt_l3_set_rate(struct clk *clk, unsigned long rate)
 #define DPLL_IVA_M5_OPPNITRO_RATE	430000000
 #define DPLL_IVA_M5_OPPNITROSB_RATE	500000000
 
-#define DPLL_IVA_OPP50_RATE		1861600000
-#define DPLL_IVA_OPP100_RATE		1861600000
+#define DPLL_IVA_OPP50_RATE		1862400000
+#define DPLL_IVA_OPP100_RATE		1862400000
 #define DPLL_IVA_OPPTURBO_RATE		992000000
-#define DPLL_IVA_OPPNITRO_RATE		858000000
-#define DPLL_IVA_OPPNITROSB_RATE	998400000
+#define DPLL_IVA_OPPNITRO_RATE		1290000000
+#define DPLL_IVA_OPPNITROSB_RATE	1500000000
 
 struct virt_iva_ck_deps {
 	unsigned long iva_ck_rate;
