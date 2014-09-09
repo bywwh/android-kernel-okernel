@@ -17,12 +17,6 @@
  * GNU General Public License for more details.
  */
 
- /******************************************************************************
-  History       :
-  --------------------------------------------------------------------------
-  DTS ID:             Author:    Date:     Modification:
-******************************************************************************/
-
 #include <linux/sched.h>
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -34,11 +28,6 @@
 #include "logger.h"
 
 #include <asm/ioctls.h>
-#if defined(CONFIG_HUAWEI_KERNEL)
-/*<qindiwen 106479 20130607 begin */
-static int minor_of_power = 0;
-/* qindiwen 106479 20130607 end>*/
-#endif
 
 /*
  * struct logger_log - represents a specific log, such as 'main' or 'radio'
@@ -670,15 +659,6 @@ static long logger_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		reader = file->private_data;
 		ret = logger_set_version(reader, argp);
 		break;
-       /*<qindiwen 106479 20130607 begin */
-#if defined(CONFIG_HUAWEI_KERNEL)
-       case FIONREAD:
-            if (minor_of_power == log->misc.minor) {
-                ret = -ENOTTY;
-            }
-            break;
-#endif
-       /* qindiwen 106479 20130607 end>*/
 	}
 
 	mutex_unlock(&log->mutex);
@@ -724,12 +704,6 @@ DEFINE_LOGGER_DEVICE(log_main, LOGGER_LOG_MAIN, 256*1024)
 DEFINE_LOGGER_DEVICE(log_events, LOGGER_LOG_EVENTS, 256*1024)
 DEFINE_LOGGER_DEVICE(log_radio, LOGGER_LOG_RADIO, 256*1024)
 DEFINE_LOGGER_DEVICE(log_system, LOGGER_LOG_SYSTEM, 256*1024)
-DEFINE_LOGGER_DEVICE(log_exception, LOGGER_LOG_EXCEPTION, 16*1024)
-#if defined(CONFIG_HUAWEI_KERNEL)
-/*<qindiwen 106479 20130607 begin */
-DEFINE_LOGGER_DEVICE(log_power, LOGGER_LOG_POWER, 256*1024)
-/* qindiwen 106479 20130607 end>*/
-#endif
 
 static struct logger_log *get_log_from_minor(int minor)
 {
@@ -741,14 +715,6 @@ static struct logger_log *get_log_from_minor(int minor)
 		return &log_radio;
 	if (log_system.misc.minor == minor)
 		return &log_system;
-	if (log_exception.misc.minor == minor)
-		return &log_exception;
-#if defined(CONFIG_HUAWEI_KERNEL)
-    /*<qindiwen 106479 20130607 begin */
-    if (log_power.misc.minor == minor)
-        return &log_power;
-    /* qindiwen 106479 20130607 end>*/
-#endif
 	return NULL;
 }
 
@@ -769,17 +735,9 @@ static int __init init_log(struct logger_log *log)
 	return 0;
 }
 
-#define LOG_CTL_ON   1
-#define LOG_CTL_OFF 0 
-
-extern char get_logctl_value(void);
-
 static int __init logger_init(void)
 {
 	int ret;
-
-       if(get_logctl_value() != LOG_CTL_ON)
-	   	return 0;
 
 	ret = init_log(&log_main);
 	if (unlikely(ret))
@@ -797,20 +755,7 @@ static int __init logger_init(void)
 	if (unlikely(ret))
 		goto out;
 
-        ret = init_log(&log_exception);
-        if (unlikely(ret))
-                goto out;
-
 out:
-#if defined(CONFIG_HUAWEI_KERNEL)
-    /*<qindiwen 106479 20130607 begin */
-    ret = init_log(&log_power);
-    if (unlikely(ret)) {
-        //do nothing
-    }
-    minor_of_power = log_power.misc.minor;
-    /* qindiwen 106479 20130607 end>*/
-#endif
 	return ret;
 }
 device_initcall(logger_init);
