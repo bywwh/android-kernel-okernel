@@ -23,3 +23,5 @@ if [ -d ./obj/ ]
 then
     rm -r ./obj/
 fi
+
+chmod 0644 ./sgx/pvr-source/eurasiacon/build/linux2/tools/cc-check.sh
