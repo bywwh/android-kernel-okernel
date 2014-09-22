@@ -58,11 +58,11 @@ struct cpufreq_interactive_cpuinfo {
 	u64 hispeed_validate_time;
 	int governor_enabled;
 	unsigned int *load_history;
+	unsigned int history_load_index;
 	unsigned int total_avg_load;
 	unsigned int total_load_history;
 	unsigned int low_power_rate_history;
 	unsigned int cpu_tune_value;
-	unsigned long lpspeed_count;
 };
 
 static DEFINE_PER_CPU(struct cpufreq_interactive_cpuinfo, cpuinfo);
@@ -83,7 +83,6 @@ static cpumask_t tune_cpumask;
 static spinlock_t tune_cpumask_lock;
 
 static unsigned int sampling_periods;
-static unsigned int history_load_index;
 static unsigned int low_power_threshold;
 static unsigned int hi_perf_threshold;
 static unsigned int low_power_rate;
@@ -104,17 +103,6 @@ static enum tune_values {
 
 /* Hi speed to bump to from lo speed when load burst (default max) */
 static u64 hispeed_freq;
-
-/* Loop speed to bump to from hi speed when load burst (default max)
-   the value must be larger than hispeed_freq */
-static unsigned int lpspeed_freq;
-
-/* Enable loop speed feature */
-static unsigned long lpspeed_enabled;
-
-/* Go to max speed when lpspeed_count at or above this value. */
-#define DEFAULT_LPSPEED_COUNT_THRESHOLD 5
-static unsigned long lpspeed_count_threshold;
 
 /* Go to hi speed when CPU load at or above this value. */
 #define DEFAULT_GO_HISPEED_LOAD 95
@@ -257,13 +245,14 @@ static void cpufreq_interactive_timer(unsigned long data)
 	 */
 	if (load_since_change > cpu_load)
 		cpu_load = load_since_change;
-	pcpu->load_history[history_load_index] = cpu_load;
+	pcpu->load_history[pcpu->history_load_index] = cpu_load;
 
 	pcpu->total_load_history = 0;
 	pcpu->low_power_rate_history = 0;
 
 	/* compute average load across in & out sampling periods */
-	for (i = 0, j = history_load_index; i < sampling_periods; i++, j--) {
+	for (i = 0, j = pcpu->history_load_index;
+					i < sampling_periods; i++, j--) {
 		pcpu->total_load_history += pcpu->load_history[j];
 		if (low_power_rate < sampling_periods)
 			if (i < low_power_rate)
@@ -274,8 +263,17 @@ static void cpufreq_interactive_timer(unsigned long data)
 	}
 
 	/* return to first element if we're at the circular buffer's end */
-	if (++history_load_index == sampling_periods)
-		history_load_index = 0;
+	if (++pcpu->history_load_index == sampling_periods)
+		pcpu->history_load_index = 0;
+	else if (unlikely(pcpu->history_load_index > sampling_periods)) {
+		/*
+		 * This not supposed to happen.
+		 * If we got here - means something is wrong.
+		 */
+		pr_err("%s: have gone beyond allocated buffer of history!\n",
+					__func__);
+		pcpu->history_load_index = 0;
+	}
 
 	pcpu->total_avg_load = pcpu->total_load_history / sampling_periods;
 
@@ -308,15 +306,8 @@ static void cpufreq_interactive_timer(unsigned long data)
 	if (cpu_load >= go_hispeed_load || boost_val) {
 		if (pcpu->target_freq <= pcpu->policy->min) {
 			new_freq = hispeed_freq;
-			pcpu->lpspeed_count = 0;
-		} else if (lpspeed_enabled && pcpu->target_freq <= lpspeed_freq
-		        && pcpu->lpspeed_count < lpspeed_count_threshold) {
-			/* keep cpu frequency on lpspeed_freq for lpspeed_count_threshold times. */
-			new_freq = min(lpspeed_freq, pcpu->policy->max);
-			pcpu->lpspeed_count++;
 		} else {
 			new_freq = pcpu->policy->max * cpu_load / 100;
-			pcpu->lpspeed_count = 0;
 
 			if (new_freq < hispeed_freq)
 				new_freq = hispeed_freq;
@@ -334,7 +325,6 @@ static void cpufreq_interactive_timer(unsigned long data)
 		}
 	} else {
 		new_freq = pcpu->policy->max * cpu_load / 100;
-		pcpu->lpspeed_count = 0;
 	}
 
 	if (new_freq <= hispeed_freq)
@@ -465,11 +455,7 @@ static void cpufreq_interactive_tune(struct work_struct *work)
 				cur_tune_value = HIGH_PERF_TUNE;
 				go_hispeed_load = MIN_GO_HISPEED_LOAD;
 				min_sample_time = MAX_MIN_SAMPLE_TIME;
-				if (lpspeed_enabled) {
-				    hispeed_freq = min(lpspeed_freq, pcpu->policy->max);
-				} else {
-				    hispeed_freq = pcpu->policy->max;
-				}
+				hispeed_freq = pcpu->policy->max;
 		} else if ((max_total_avg_load < low_power_threshold)
 				&& (cur_tune_value != LOW_POWER_TUNE)) {
 			/* Boost down the performance */
@@ -821,72 +807,6 @@ static ssize_t store_hispeed_freq(struct kobject *kobj,
 static struct global_attr hispeed_freq_attr = __ATTR(hispeed_freq, 0644,
 		show_hispeed_freq, store_hispeed_freq);
 
-static ssize_t show_lpspeed_freq(struct kobject *kobj,
-				 struct attribute *attr, char *buf)
-{
-	return sprintf(buf, "%u\n", lpspeed_freq);
-}
-
-static ssize_t store_lpspeed_freq(struct kobject *kobj,
-				  struct attribute *attr, const char *buf,
-				  size_t count)
-{
-	int ret;
-	unsigned int val;
-
-	ret = sscanf(buf, "%u", &val);
-	if (ret != 1)
-		return -EINVAL;
-	lpspeed_freq = val;
-	return count;
-}
-
-static struct global_attr lpspeed_freq_attr = __ATTR(lpspeed_freq, 0644,
-		show_lpspeed_freq, store_lpspeed_freq);
-
-static ssize_t show_lpspeed_enabled(struct kobject *kobj,
-				     struct attribute *attr, char *buf)
-{
-	return sprintf(buf, "%lu\n", lpspeed_enabled);
-}
-
-static ssize_t store_lpspeed_enabled(struct kobject *kobj,
-			struct attribute *attr, const char *buf, size_t count)
-{
-	int ret;
-	unsigned long val;
-
-	ret = strict_strtoul(buf, 0, &val);
-	if (ret < 0)
-		return ret;
-	lpspeed_enabled = val;
-	return count;
-}
-
-static struct global_attr lpspeed_enabled_attr = __ATTR(lpspeed_enabled, 0644,
-		show_lpspeed_enabled, store_lpspeed_enabled);
-
-static ssize_t show_lpspeed_count_threshold(struct kobject *kobj,
-				     struct attribute *attr, char *buf)
-{
-	return sprintf(buf, "%lu\n", lpspeed_count_threshold);
-}
-
-static ssize_t store_lpspeed_count_threshold(struct kobject *kobj,
-			struct attribute *attr, const char *buf, size_t count)
-{
-	int ret;
-	unsigned long val;
-
-	ret = strict_strtoul(buf, 0, &val);
-	if (ret < 0)
-		return ret;
-	lpspeed_count_threshold = val;
-	return count;
-}
-
-static struct global_attr lpspeed_count_threshold_attr = __ATTR(lpspeed_count_threshold, 0644,
-		show_lpspeed_count_threshold, store_lpspeed_count_threshold);
 
 static ssize_t show_go_hispeed_load(struct kobject *kobj,
 				     struct attribute *attr, char *buf)
@@ -1055,9 +975,10 @@ static ssize_t store_sampling_periods(struct kobject *kobj,
 			struct attribute *attr, const char *buf, size_t count)
 {
 	int ret;
-	unsigned int val;
+	unsigned int val, t_mask = 0;
 	unsigned int *temp;
 	unsigned int j, i;
+	struct cpufreq_interactive_cpuinfo *pcpu;
 
 	ret = sscanf(buf, "%u", &val);
 	if (ret != 1)
@@ -1066,40 +987,42 @@ static ssize_t store_sampling_periods(struct kobject *kobj,
 	if (val == sampling_periods)
 		return count;
 
-	if (val <= sampling_periods) {
-		sampling_periods = val;
-		history_load_index = 0;
-		return count;
-	}
-
 	mutex_lock(&set_speed_lock);
 
-	for_each_online_cpu(j) {
-		struct cpufreq_interactive_cpuinfo *pcpu;
+	for_each_present_cpu(j) {
+		pcpu = &per_cpu(cpuinfo, j);
+		ret = del_timer_sync(&pcpu->cpu_timer);
+		if (ret)
+			t_mask |= BIT(j);
+		pcpu->history_load_index = 0;
 
 		temp = kmalloc((sizeof(unsigned int) * val), GFP_KERNEL);
 		if (!temp) {
-			mutex_unlock(&set_speed_lock);
 			pr_err("%s:can't allocate memory for history\n",
 					__func__);
-			return -ENOMEM;
+			count = -ENOMEM;
+			goto out;
 		}
-		pcpu = &per_cpu(cpuinfo, j);
-		ret = del_timer_sync(&pcpu->cpu_timer);
 		memcpy(temp, pcpu->load_history,
-				(sampling_periods * sizeof(unsigned int)));
-		for (i = sampling_periods; i < val; i++)
-			temp[i] = 50;
+			(min(sampling_periods, val) * sizeof(unsigned int)));
+		if (val > sampling_periods)
+			for (i = sampling_periods; i < val; i++)
+				temp[i] = 50;
 
 		kfree(pcpu->load_history);
 		pcpu->load_history = temp;
-
-		if (ret)
-			mod_timer(&pcpu->cpu_timer,
-				  jiffies + usecs_to_jiffies(timer_rate));
 	}
-	sampling_periods = val;
-	history_load_index = 0;
+
+out:
+	if (!(count < 0 && val > sampling_periods))
+		sampling_periods = val;
+
+	for_each_online_cpu(j) {
+		pcpu = &per_cpu(cpuinfo, j);
+		if (t_mask & BIT(j))
+			mod_timer(&pcpu->cpu_timer,
+				jiffies + usecs_to_jiffies(timer_rate));
+	}
 
 	mutex_unlock(&set_speed_lock);
 
@@ -1179,9 +1102,6 @@ static struct global_attr low_power_rate_attr = __ATTR(low_power_rate,
 
 static struct attribute *interactive_attributes[] = {
 	&hispeed_freq_attr.attr,
-	&lpspeed_freq_attr.attr,
-	&lpspeed_enabled_attr.attr,
-	&lpspeed_count_threshold_attr.attr,
 	&go_hispeed_load_attr.attr,
 	&above_hispeed_delay.attr,
 	&min_sample_time_attr.attr,
@@ -1238,14 +1158,12 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 				return -ENOMEM;
 			for (i = 0; i < sampling_periods; i++)
 				pcpu->load_history[i] = 0;
+			pcpu->history_load_index = 0;
 			smp_wmb();
 		}
 
 		if (!hispeed_freq)
 			hispeed_freq = policy->max;
-		if (!lpspeed_freq)
-		    lpspeed_freq = policy->max;
-		history_load_index = 0;
 
 		/*
 		 * Do not register the idle hook and create sysfs
@@ -1340,7 +1258,6 @@ static int __init cpufreq_interactive_init(void)
 #ifdef CONFIG_OMAP4_DPLL_CASCADING
 	default_timer_rate = DEFAULT_TIMER_RATE;
 #endif
-	lpspeed_count_threshold = DEFAULT_LPSPEED_COUNT_THRESHOLD;
 
 	sampling_periods = DEFAULT_SAMPLING_PERIODS;
 	hi_perf_threshold = DEFAULT_HI_PERF_THRESHOLD;
