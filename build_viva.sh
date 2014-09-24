@@ -12,7 +12,7 @@
 ##############################################################################
 export ARCH=arm
 export CROSS_COMPILE=~/android/cm11/prebuilts/gcc/linux-x86/arm/linaro-4.8/bin/arm-eabi-
-export LOCALVERSION="-v5"
+export LOCALVERSION="-ok-001"
 export CCACHE_DIR=~/.ccache/kernel
 ##############################################################################
 # set variables
