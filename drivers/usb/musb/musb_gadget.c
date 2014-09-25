@@ -1959,6 +1959,7 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver,
 	musb->gadget_driver = driver;
 	musb->g.dev.driver = &driver->driver;
 	driver->driver.bus = NULL;
+	musb->softconnect = 1;
 	spin_unlock_irqrestore(&musb->lock, flags);
 
 	retval = bind(&musb->g);
