@@ -55,8 +55,9 @@ then
     rm -r $KERNELDIR/sgx/pvr-source/eurasiacon/binary2_540_120_omap4430_android_release
     cp $KERNEL_OUT/pvrsrvkm_sgx540_120.ko ./pvrsrvkm_sgx540_120.ko
     mv $KERNEL_OUT/pvrsrvkm_sgx540_120.ko $KERNEL_OUT/tmp/system/lib/modules/pvrsrvkm_sgx540_120.ko
-    cp ./android/blank_any_kernel.zip new_any_kernel.zip
+    CURRENT_DATE=`date +%Y%m%d-%H%M`
+    cp ./android/blank_any_kernel.zip okernel$LOCALVERSION-$CURRENT_DATE.zip
     pushd $KERNEL_OUT/tmp
-    zip -r ../../../new_any_kernel.zip ./system/
-    zip -r ../../../new_any_kernel.zip ./kernel/
+    zip -r ../../../okernel$LOCALVERSION-$CURRENT_DATE.zip ./system/
+    zip -r ../../../okernel$LOCALVERSION-$CURRENT_DATE.zip ./kernel/
 fi
