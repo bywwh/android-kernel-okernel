@@ -15,9 +15,9 @@ then
     rm ./zImage
 fi
 
-if [ -f ./new_any_kernel.zip ]
+if [ -f ./okernel*.zip ]
 then
-    rm ./new_any_kernel.zip
+    rm ./okernel*.zip
 fi
 
 if [ -f ./pvrsrvkm_sgx540_120.ko ]
