@@ -15,7 +15,7 @@
 export ARCH=arm
 export SUBARCH=arm
 export CROSS_COMPILE=~/AndroidSources/linaro-4.8/bin/arm-eabi-
-export LOCALVERSION="-ok-005"
+export LOCALVERSION="-ok-006"
 export CCACHE_DIR=~/.ccache/kernel
 ccache -M 5G
 
