@@ -6,12 +6,6 @@
  *  proc root directory handling functions
  */
 
-/*================================================================================
-                         EDIT HISTORY FOR MODULE
-     
- case      				who        		when         	what, where, why
- 
-================================================================================*/
 #include <asm/uaccess.h>
 
 #include <linux/errno.h>
@@ -112,7 +106,6 @@ void __init proc_root_init(void)
 
 	init_pid_ns.proc_mnt = mnt;
 	proc_symlink("mounts", NULL, "self/mounts");
-	proc_app_info_init();
 
 	proc_net_init();
 
