@@ -39,7 +39,6 @@
 #include <plat/usb.h>
 #include <plat/omap_device.h>
 
-#include "clockdomain.h"
 #include "control.h"
 #include "mux.h"
 
@@ -55,7 +54,6 @@ static struct usbhs_omap_platform_data		usbhs_data;
 static struct ehci_hcd_omap_platform_data	ehci_data;
 static struct ohci_hcd_omap_platform_data	ohci_data;
 static int usbhs_update_sar;
-static struct clockdomain *l3init_clkdm;
 
 static struct omap_device_pm_latency omap_uhhtll_latency[] = {
 	  {
@@ -848,35 +846,17 @@ void usbhs_wakeup()
 
 	if (workq) {
 		int queued;
-		queued = queue_work(pm_wq, &usbhs_wake->wakeup_work);
-		if (queued) {
-		  clkdm_wakeup(l3init_clkdm);
-		  pm_runtime_get(usbhs_wake->dev);
-		}
+		queued = queue_delayed_work(pm_wq, &usbhs_wake->wakeup_work,
+				msecs_to_jiffies(20));
+		if (queued)
+			pm_runtime_get(usbhs_wake->dev);
 	}
 }
 
 static void usbhs_resume_work(struct work_struct *work)
 {
 	dev_dbg(usbhs_wake->dev, "USB IO PAD Wakeup event triggered\n");
-
 	pm_runtime_put(usbhs_wake->dev);
-
-	if (usbhs_wake->wakeup_ehci) {
-		usbhs_wake->wakeup_ehci = 0;
-		omap_hwmod_disable_ioring_wakeup(usbhs_wake->oh_ehci);
-	}
-
-	if (usbhs_wake->wakeup_ohci) {
-		usbhs_wake->wakeup_ohci = 0;
-		omap_hwmod_disable_ioring_wakeup(usbhs_wake->oh_ohci);
-	}
-
-	if (pm_runtime_suspended(usbhs_wake->dev)) {
-		pm_runtime_get_sync(usbhs_wake->dev);
-		pm_runtime_put_sync(usbhs_wake->dev);
-		clkdm_allow_idle(l3init_clkdm);
-	}
 }
 
 void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
@@ -935,11 +915,6 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
 		oh[1]->mux = setup_4430ohci_io_mux(pdata->port_mode);
 		if (oh[1]->mux)
 			omap_hwmod_mux(oh[1]->mux, _HWMOD_STATE_ENABLED);
-	}
-	
-	l3init_clkdm = clkdm_lookup("l3_init_clkdm");
-	if (!l3init_clkdm) {
-	  pr_err("Failed to get l3_init_clkdm\n");
 	}
 
 	od = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 4,
