@@ -25,6 +25,7 @@
 
 #include <asm/hardware/gic.h>
 #include <mach/omap4-common.h>
+#include <mach/emif.h>
 #include <plat/omap_hsi.h>
 #include <plat/common.h>
 #include <plat/temperature_sensor.h>
