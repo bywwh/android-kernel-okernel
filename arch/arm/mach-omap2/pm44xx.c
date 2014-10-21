@@ -25,6 +25,7 @@
 
 #include <asm/hardware/gic.h>
 #include <mach/omap4-common.h>
+#include <mach/emif.h>
 #include <plat/omap_hsi.h>
 #include <plat/common.h>
 #include <plat/temperature_sensor.h>
@@ -1683,6 +1684,9 @@ static int __init omap4_pm_init(void)
 			/* Continue to next device */
 		}
 	}
+
+	/* apply any pending bus throughput requests */
+	omap_pm_apply_min_bus_tput();
 
 err2:
 	return ret;
