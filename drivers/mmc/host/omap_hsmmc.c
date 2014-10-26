@@ -14,13 +14,6 @@
  * version 2. This program is licensed "as is" without any warranty of any
  * kind, whether express or implied.
  */
-/*============================================================================================
- *
- *histroy
- *
- * DTS                 who          when         why
- *============================================================================================
- */
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/debugfs.h>
@@ -176,7 +169,8 @@
 #define OMAP_MMC4_DEVID		3
 #define OMAP_MMC5_DEVID		4
 
-#define MMC_TIMEOUT_MS		20
+#define MMC_TIMEOUT_MS         20              /* 20 mSec */
+#define MMC_TIMEOUT_US         20000           /* 20000 micro Sec */
 #define OMAP_MMC_MASTER_CLOCK	96000000
 #ifdef CONFIG_OMAP4_DPLL_CASCADING
 #define OMAP_MMC_DPLL_CLOCK	49152000
@@ -980,11 +974,12 @@ omap_hsmmc_get_dma_dir(struct omap_hsmmc_host *host, struct mmc_data *data)
 static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_request *mrq)
 {
 	int dma_ch;
+	unsigned long flags;
 
-	spin_lock(&host->irq_lock);
+	spin_lock_irqsave(&host->irq_lock, flags);
 	host->req_in_progress = 0;
 	dma_ch = host->dma_ch;
-	spin_unlock(&host->irq_lock);
+	spin_unlock_irqrestore(&host->irq_lock, flags);
 
 	omap_hsmmc_disable_irq(host);
 	/* Do not complete the request if DMA is still in progress */
@@ -1103,13 +1098,14 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
 static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
 {
 	int dma_ch;
+	unsigned long flags;
 
 	host->data->error = errno;
 
-	spin_lock(&host->irq_lock);
+	spin_lock_irqsave(&host->irq_lock, flags);
 	dma_ch = host->dma_ch;
 	host->dma_ch = -1;
-	spin_unlock(&host->irq_lock);
+	spin_unlock_irqrestore(&host->irq_lock, flags);
 
 	if ((host->dma_type == SDMA_XFER) && (dma_ch != -1)) {
 		dma_unmap_sg(mmc_dev(host->mmc), host->data->sg,
@@ -1161,7 +1157,7 @@ static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host *host,
 						   unsigned long bit)
 {
 	unsigned long i = 0;
-	unsigned long limit = MMC_TIMEOUT_MS * 1000; /* usecs */
+	unsigned long limit = MMC_TIMEOUT_US;
 
 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
 			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
@@ -1523,6 +1519,7 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
 	struct omap_hsmmc_host *host = cb_data;
 	struct mmc_data *data = host->mrq->data;
 	int dma_ch, req_in_progress;
+	unsigned long flags;
 
 	if (!(ch_status & OMAP_DMA_BLOCK_IRQ)) {
 		dev_warn(mmc_dev(host->mmc), "unexpected dma status %x\n",
@@ -1530,9 +1527,9 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
 		return;
 	}
 
-	spin_lock(&host->irq_lock);
+	spin_lock_irqsave(&host->irq_lock, flags);
 	if (host->dma_ch < 0) {
-		spin_unlock(&host->irq_lock);
+		spin_unlock_irqrestore(&host->irq_lock, flags);
 		return;
 	}
 
@@ -1541,7 +1538,7 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
 		/* Fire up the next transfer. */
 		omap_hsmmc_config_dma_params(host, data,
 					   data->sg + host->dma_sg_idx);
-		spin_unlock(&host->irq_lock);
+		spin_unlock_irqrestore(&host->irq_lock, flags);
 		return;
 	}
 
@@ -1551,7 +1548,7 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
 	req_in_progress = host->req_in_progress;
 	dma_ch = host->dma_ch;
 	host->dma_ch = -1;
-	spin_unlock(&host->irq_lock);
+	spin_unlock_irqrestore(&host->irq_lock, flags);
 
 	omap_free_dma(dma_ch);
 
@@ -2141,7 +2138,8 @@ omap_hsmmc_dpll_clocks_configure(struct omap_hsmmc_host *host, int clk)
 static void
 omap_hsmmc_dpll_clocks_reconfigure(struct omap_hsmmc_host *host)
 {
-	spin_lock(&host->dpll_lock);
+	unsigned long flags;
+	spin_lock_irqsave(&host->dpll_lock, flags);
 	if (host->dpll_entry == 1) {
 		omap_hsmmc_dpll_clocks_configure(host, OMAP_MMC_DPLL_CLOCK);
 		host->dpll_entry = 0;
@@ -2149,7 +2147,7 @@ omap_hsmmc_dpll_clocks_reconfigure(struct omap_hsmmc_host *host)
 		omap_hsmmc_dpll_clocks_configure(host, OMAP_MMC_MASTER_CLOCK);
 		host->dpll_exit = 0;
 	}
-	spin_unlock(&host->dpll_lock);
+	spin_unlock_irqrestore(&host->dpll_lock, flags);
 }
 #endif
 
@@ -2380,11 +2378,13 @@ static void omap_hsmmc_debugfs(struct mmc_host *mmc)
 static int omap_hsmmc_dpll_notifier(struct notifier_block *nb,
 					unsigned long val, void *data)
 {
+
 	struct omap_hsmmc_host *host =
 		container_of(nb, struct omap_hsmmc_host, nb);
 	struct clk_notifier_data *cnd = (struct clk_notifier_data *)data;
+	unsigned long flags;
 
-	spin_lock(&host->dpll_lock);
+	spin_lock_irqsave(&host->dpll_lock, flags);
 
 	if (val != CLK_PRE_RATE_CHANGE) {
 		if (cnd->old_rate == OMAP_MMC_DPLL_CLOCK) {
@@ -2396,7 +2396,7 @@ static int omap_hsmmc_dpll_notifier(struct notifier_block *nb,
 		}
 	}
 
-	spin_unlock(&host->dpll_lock);
+	spin_unlock_irqrestore(&host->dpll_lock, flags);
 	return 0;
 }
 #endif

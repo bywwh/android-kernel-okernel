@@ -269,7 +269,7 @@ EXPORT_SYMBOL(mmc_wait_for_cmd);
  */
 void mmc_set_data_timeout(struct mmc_data *data, const struct mmc_card *card)
 {
-	unsigned int mult;
+	unsigned int mult, timeout_us;;
 
 	/*
 	 * SDIO cards only define an upper 1 s limit on access.
@@ -292,16 +292,32 @@ void mmc_set_data_timeout(struct mmc_data *data, const struct mmc_card *card)
 	if (data->flags & MMC_DATA_WRITE)
 		mult <<= card->csd.r2w_factor;
 
-	data->timeout_ns = card->csd.tacc_ns * mult;
+	/*
+	 * The timeout in nanoseconds may overflow, so calculate it in
+	 * microseconds first. Cap it at two seconds both to avoid the overflow
+	 * and also because host controllers cannot generally generate timeouts
+	 * that long anyway.
+	 */
+	timeout_us = (card->csd.tacc_ns / 1000) * mult;
+	/*
+	 * The timeout in nanoseconds may overflow with some cards. Cap it at
+	 * UINT_MAX to avoid the overflow; host controllers cannot generally
+	 * generate timeouts that long anyway.
+	 */
+	if (card->csd.tacc_ns <= UINT_MAX / mult)
+			data->timeout_ns = card->csd.tacc_ns * mult;
+	else
+			data->timeout_ns = UINT_MAX;
+
+
 	data->timeout_clks = card->csd.tacc_clks * mult;
 
 	/*
 	 * SD cards also have an upper limit on the timeout.
 	 */
 	if (mmc_card_sd(card)) {
-		unsigned int timeout_us, limit_us;
+		unsigned int limit_us;
 
-		timeout_us = data->timeout_ns / 1000;
 		if (mmc_host_clk_rate(card->host))
 			timeout_us += data->timeout_clks * 1000 /
 				(mmc_host_clk_rate(card->host) / 1000);
@@ -1319,7 +1335,10 @@ static unsigned int mmc_mmc_erase_timeout(struct mmc_card *card,
 {
 	unsigned int erase_timeout;
 
-	if (card->ext_csd.erase_group_def & 1) {
+	if (arg == MMC_DISCARD_ARG ||
+		(arg == MMC_TRIM_ARG && card->ext_csd.rev >= 6)) {
+		erase_timeout = card->ext_csd.trim_timeout;
+	} else if (card->ext_csd.erase_group_def & 1) {
 		/* High Capacity Erase Group Size uses HC timeouts */
 		if (arg == MMC_TRIM_ARG)
 			erase_timeout = card->ext_csd.trim_timeout;
@@ -1594,6 +1613,14 @@ int mmc_can_trim(struct mmc_card *card)
 	return 0;
 }
 EXPORT_SYMBOL(mmc_can_trim);
+
+int mmc_can_discard(struct mmc_card *card)
+{
+	if (card->ext_csd.feature_support & MMC_DISCARD_FEATURE)
+		return 1;
+	return 0;
+}
+EXPORT_SYMBOL( mmc_can_discard);
 
 int mmc_can_secure_erase_trim(struct mmc_card *card)
 {
