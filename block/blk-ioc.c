@@ -79,7 +79,6 @@ void exit_io_context(struct task_struct *task)
 		hlist_sched_exit(ioc, &ioc->cic_list);
 		hlist_sched_exit(ioc, &ioc->bfq_cic_list);
 	}
-
 	put_io_context(ioc);
 }
 
