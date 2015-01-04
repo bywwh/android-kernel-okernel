@@ -20,14 +20,7 @@ then
     rm ./okernel*.zip
 fi
 
-if [ -f ./pvrsrvkm_sgx540_120.ko ]
-then
-    rm ./pvrsrvkm_sgx540_120.ko
-fi
-
 if [ -d ./obj/ ]
 then
     rm -r ./obj/
 fi
-
-chmod 0644 ./sgx/pvr-source/eurasiacon/build/linux2/tools/cc-check.sh
