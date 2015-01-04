@@ -1484,7 +1484,7 @@ FreeAllocPagesLinuxMemArea(LinuxMemArea *psLinuxMemArea)
 #include <linux/omap_ion.h>
 #include <linux/scatterlist.h>
 
-extern struct ion_client *gpsIONClient;
+extern struct ion_client *gpsIONClientPVR;
 
 LinuxMemArea *
 NewIONLinuxMemArea(IMG_UINT32 ui32Bytes, IMG_UINT32 ui32AreaFlags,
@@ -1563,7 +1563,7 @@ NewIONLinuxMemArea(IMG_UINT32 ui32Bytes, IMG_UINT32 ui32AreaFlags,
 			struct scatterlist *sg, *sglist;
 			IMG_UINT32 ui32Num1dPages;
 
-			asAllocData[i].handle = ion_alloc (gpsIONClient,
+			asAllocData[i].handle = ion_alloc (gpsIONClientPVR,
 				ui32Bytes,
 				PAGE_SIZE, (1 << OMAP_ION_HEAP_SYSTEM));
 
@@ -1574,7 +1574,7 @@ NewIONLinuxMemArea(IMG_UINT32 ui32Bytes, IMG_UINT32 ui32AreaFlags,
 				goto err_free;
 			}
 
-			sglist = ion_map_dma (gpsIONClient, asAllocData[i].handle);
+			sglist = ion_map_dma (gpsIONClientPVR, asAllocData[i].handle);
 			if (sglist == NULL)
 			{
 				PVR_DPF((PVR_DBG_ERROR, "%s: Failed to compute pages",
@@ -1600,14 +1600,14 @@ NewIONLinuxMemArea(IMG_UINT32 ui32Bytes, IMG_UINT32 ui32AreaFlags,
         }
         else /* 2D DMM Buffers */
         {
-			if (omap_ion_tiler_alloc(gpsIONClient, &asAllocData[i]) < 0)
+			if (omap_ion_tiler_alloc(gpsIONClientPVR, &asAllocData[i]) < 0)
 			{
 				PVR_DPF((PVR_DBG_ERROR, "%s: Failed to allocate via ion_tiler",
 									__func__));
 				goto err_free;
 			}
 
-			if (omap_tiler_pages(gpsIONClient, asAllocData[i].handle, &iNumPages[i],
+			if (omap_tiler_pages(gpsIONClientPVR, asAllocData[i].handle, &iNumPages[i],
 								&pu32PageAddrs[i]) < 0)
 			{
 				PVR_DPF((PVR_DBG_ERROR, "%s: Failed to compute tiler pages",
@@ -1749,7 +1749,7 @@ FreeIONLinuxMemArea(LinuxMemArea *psLinuxMemArea)
     {
         if (!psLinuxMemArea->uData.sIONTilerAlloc.psIONHandle[i])
             break;
-        ion_free(gpsIONClient, psLinuxMemArea->uData.sIONTilerAlloc.psIONHandle[i]);
+        ion_free(gpsIONClientPVR, psLinuxMemArea->uData.sIONTilerAlloc.psIONHandle[i]);
         psLinuxMemArea->uData.sIONTilerAlloc.psIONHandle[i] = IMG_NULL;
     }
 

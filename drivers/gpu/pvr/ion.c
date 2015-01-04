@@ -58,7 +58,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined (CONFIG_ION_OMAP)
 #define MAX_HANDLES_PER_FD 2
-extern struct ion_client *gpsIONClient;
+extern struct ion_client *gpsIONClientPVR;
 
 int PVRSRVExportFDToIONHandles(int fd, struct ion_client **client,
 								struct ion_handle **handles,
@@ -132,7 +132,7 @@ int PVRSRVExportFDToIONHandles(int fd, struct ion_client **client,
 	*num_handles = i;
 
 	if(client)
-		*client = gpsIONClient;
+		*client = gpsIONClientPVR;
 
 	ret = 0;
 

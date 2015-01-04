@@ -166,8 +166,8 @@ MODULE_PARM_DESC(gPVRDebugLevel, "Sets the level of debug output (default 0x7)")
 #include "ion.h"
 extern void omap_ion_register_pvr_export(void *);
 extern struct ion_device *omap_ion_device;
-struct ion_client *gpsIONClient;
-EXPORT_SYMBOL(gpsIONClient);
+struct ion_client *gpsIONClientPVR;
+EXPORT_SYMBOL(gpsIONClientPVR);
 #endif /* defined(CONFIG_ION_OMAP) */
 
 /* PRQA S 3207 2 */ /* ignore 'not used' warning */
@@ -356,15 +356,15 @@ static int __devinit PVRSRVDriverProbe(LDM_DEV *pDevice, const struct pci_device
 	}
 
 #if defined(CONFIG_ION_OMAP)
-	gpsIONClient = ion_client_create(omap_ion_device,
+	gpsIONClientPVR = ion_client_create(omap_ion_device,
 			1 << ION_HEAP_TYPE_CARVEOUT |
 			1 << OMAP_ION_HEAP_TYPE_TILER |
 			1 << ION_HEAP_TYPE_SYSTEM,
 			"pvr");
-	if (IS_ERR_OR_NULL(gpsIONClient))
+	if (IS_ERR_OR_NULL(gpsIONClientPVR))
 	{
 		PVR_DPF((PVR_DBG_ERROR, "PVRSRVDriverProbe: Couldn't create ion client"));
-		return PTR_ERR(gpsIONClient);
+		return PTR_ERR(gpsIONClientPVR);
 	}
 	omap_ion_register_pvr_export(&PVRSRVExportFDToIONHandles);
 #endif /* defined(CONFIG_ION_OMAP) */
@@ -404,8 +404,8 @@ static void __devexit PVRSRVDriverRemove(LDM_DEV *pDevice)
 	PVR_TRACE(("PVRSRVDriverRemove(pDevice=%p)", pDevice));
 
 #if defined(CONFIG_ION_OMAP)
-	ion_client_destroy(gpsIONClient);
-	gpsIONClient = IMG_NULL;
+	ion_client_destroy(gpsIONClientPVR);
+	gpsIONClientPVR = IMG_NULL;
 #endif
 
 	SysAcquireData(&psSysData);
