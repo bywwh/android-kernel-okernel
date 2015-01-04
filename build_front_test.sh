@@ -14,8 +14,8 @@
 ##############################################################################
 export ARCH=arm
 export SUBARCH=arm
-export CROSS_COMPILE=~/AndroidSources/linaro-4.9.2/bin/arm-eabi-
-export LOCALVERSION="-test"
+export CROSS_COMPILE=~/AndroidSources/linaro-4.9.3/bin/arm-eabi-
+export LOCALVERSION="-ok-test"
 export CCACHE_DIR=~/.ccache/kernel
 ccache -M 5G
 
@@ -31,7 +31,6 @@ STRIP=${CROSS_COMPILE}strip
 ##############################################################################
 mkdir -p $KERNEL_OUT
 mkdir -p $KERNEL_OUT/tmp/kernel
-mkdir -p $KERNEL_OUT/tmp/system/lib/modules
 
 make O=$KERNEL_OUT front_test_defconfig
 make -j10 O=$KERNEL_OUT
@@ -42,22 +41,10 @@ then
     mv -f $KERNEL_OUT/arch/arm/boot/zImage $KERNEL_OUT/tmp/kernel/zImage
 fi
 
-##############################################################################
-# make SGX module
-##############################################################################
 if [ -f ./zImage ]
 then
-    make clean -C $KERNELDIR/sgx/pvr-source/eurasiacon/build/linux2/omap4430_android
-    make -j10 -C $KERNELDIR/sgx/pvr-source/eurasiacon/build/linux2/omap4430_android KERNELDIR=$KERNEL_OUT TARGET_PRODUCT="blaze" BUILD=release TARGET_SGX=540 PLATFORM_VERSION=4.0
-    mv $KERNELDIR/sgx/pvr-source/eurasiacon/binary2_540_120_omap4430_android_release/target/kbuild/pvrsrvkm_sgx540_120.ko $KERNEL_OUT
-    $STRIP --strip-unneeded $KERNEL_OUT/pvrsrvkm_sgx540_120.ko
-    make clean -C $KERNELDIR/sgx/pvr-source/eurasiacon/build/linux2/omap4430_android
-    rm -r $KERNELDIR/sgx/pvr-source/eurasiacon/binary2_540_120_omap4430_android_release
-    cp $KERNEL_OUT/pvrsrvkm_sgx540_120.ko ./pvrsrvkm_sgx540_120.ko
-    mv $KERNEL_OUT/pvrsrvkm_sgx540_120.ko $KERNEL_OUT/tmp/system/lib/modules/pvrsrvkm_sgx540_120.ko
     CURRENT_DATE=`date +%Y%m%d-%H%M`
     cp ./android/blank_any_kernel.zip okernel$LOCALVERSION-$CURRENT_DATE.zip
     pushd $KERNEL_OUT/tmp
-    zip -r ../../../okernel$LOCALVERSION-$CURRENT_DATE.zip ./system/
     zip -r ../../../okernel$LOCALVERSION-$CURRENT_DATE.zip ./kernel/
 fi
