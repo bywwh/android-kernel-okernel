@@ -293,11 +293,12 @@ void omap_register_i2c_bus_board_data(int bus_id,
  * omap2_i2c_pullup - setup pull-up resistors for I2C bus
  * @bus_id: bus id counting from number 1
  * @sda_pullup: Pull-up resistor for SDA and SCL pins
+ * @conf: pin configuration to be used for SDA and SCL pads
  *
  */
-void omap2_i2c_pullup(int bus_id, enum omap_i2c_pullup_values pullup)
+void omap2_i2c_pullup(int bus_id, enum omap_i2c_pullup_values pullup, int conf)
 {
-	u32 val = 0;
+	u32 val = 0, reg = 0;
 
 
 	if (bus_id < 1 || bus_id > omap_i2c_nr_ports() ||
@@ -317,6 +318,20 @@ void omap2_i2c_pullup(int bus_id, enum omap_i2c_pullup_values pullup)
 			OMAP4_I2C1_SCL_PULLUPRESX_MASK);
 		val |= ((pullup << OMAP4_I2C1_SDA_LOAD_BITS_SHIFT) |
 			(pullup << OMAP4_I2C1_SCL_LOAD_BITS_SHIFT));
+               /* Configure SDA Pad*/
+               reg = omap4_ctrl_pad_readl( \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C1_SDA_PAD1_I2C2_SCL);
+               reg &= ~(OMAP4_I2C_PAD0_SDA_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SDA_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C1_SDA_PAD1_I2C2_SCL);
+               /* Configure SCL Pad*/
+               reg = omap4_ctrl_pad_readl( \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_HDQ_SIO_PAD1_I2C1_SCL);
+               reg &= ~(OMAP4_I2C_PAD0_SCL_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SCL_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_HDQ_SIO_PAD1_I2C1_SCL);
 		break;
 	case 2:
 		/* Setup PULL-UP resistor for I2C-2 */
@@ -326,6 +341,20 @@ void omap2_i2c_pullup(int bus_id, enum omap_i2c_pullup_values pullup)
 			OMAP4_I2C2_SCL_PULLUPRESX_MASK);
 		val |= ((pullup << OMAP4_I2C2_SDA_LOAD_BITS_SHIFT) |
 			(pullup << OMAP4_I2C2_SCL_LOAD_BITS_SHIFT));
+               /* Configure SDA Pad*/
+               reg = omap4_ctrl_pad_readl( \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C2_SDA_PAD1_I2C3_SCL);
+               reg &= ~(OMAP4_I2C_PAD0_SDA_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SDA_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C2_SDA_PAD1_I2C3_SCL);
+               /* Configure SCL Pad*/
+               reg = omap4_ctrl_pad_readl( \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C1_SDA_PAD1_I2C2_SCL);
+               reg &= ~(OMAP4_I2C_PAD0_SCL_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SCL_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C1_SDA_PAD1_I2C2_SCL);
 		break;
 	case 3:
 		/* Setup PULL-UP resistor for I2C-3 */
@@ -335,6 +364,20 @@ void omap2_i2c_pullup(int bus_id, enum omap_i2c_pullup_values pullup)
 			OMAP4_I2C3_SCL_PULLUPRESX_MASK);
 		val |= ((pullup << OMAP4_I2C3_SDA_LOAD_BITS_SHIFT) |
 			(pullup << OMAP4_I2C3_SCL_LOAD_BITS_SHIFT));
+               /* Configure SDA Pad*/
+               reg = omap4_ctrl_pad_readl( \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C3_SDA_PAD1_I2C4_SCL);
+               reg &= ~(OMAP4_I2C_PAD0_SDA_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SDA_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C3_SDA_PAD1_I2C4_SCL);
+               /* Configure SCL Pad*/
+               reg = omap4_ctrl_pad_readl( \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C2_SDA_PAD1_I2C3_SCL);
+               reg &= ~(OMAP4_I2C_PAD0_SCL_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SCL_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C2_SDA_PAD1_I2C3_SCL);
 		break;
 	case 4:
 		/* Setup PULL-UP resistor for I2C-4 */
@@ -344,6 +387,20 @@ void omap2_i2c_pullup(int bus_id, enum omap_i2c_pullup_values pullup)
 			OMAP4_I2C4_SCL_PULLUPRESX_MASK);
 		val |= ((pullup << OMAP4_I2C4_SDA_LOAD_BITS_SHIFT) |
 			(pullup << OMAP4_I2C4_SCL_LOAD_BITS_SHIFT));
+               /* Configure SDA Pad*/
+               reg = omap4_ctrl_pad_readl( \
+               OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C4_SDA_PAD1_MCSPI1_CLK);
+               reg &= ~(OMAP4_I2C_PAD0_SDA_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SDA_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+               OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C4_SDA_PAD1_MCSPI1_CLK);
+               /* Configure SCL Pad*/
+               reg = omap4_ctrl_pad_readl( \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C3_SDA_PAD1_I2C4_SCL);
+               reg &= ~(OMAP4_I2C_PAD0_SCL_MASK);
+               reg |= (conf << OMAP4_I2C_PAD0_SCL_SHIFT);
+               omap4_ctrl_pad_writel(reg, \
+                       OMAP4_CTRL_MODULE_PAD_CORE_PAD0_I2C3_SDA_PAD1_I2C4_SCL);
 		break;
 	default:
 		return;
