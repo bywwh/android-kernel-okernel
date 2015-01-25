@@ -14,11 +14,6 @@
  *
  */
 
- /*==============================================================================
-History
-Problem NO.         Name        Time         Reason
-==============================================================================*/
-
 #ifndef _LINUX_ATMEL_H
 #define _LINUX_ATMEL_H
 
@@ -263,6 +258,44 @@ Problem NO.         Name        Time         Reason
 
 #define T28_MSG_STATUS                          1
 
+
+#define T48_NOISESUPPRESSION_CTRL               0
+#define T48_NOISESUPPRESSION_CFG                1
+#define T48_NOISESUPPRESSION_CALCFG             2
+#define T48_NOISESUPPRESSION_BASEFREQ           3
+#define T48_NOISESUPPRESSION_MFFREQ_0           8
+#define T48_NOISESUPPRESSION_MFFREQ_1           9
+#define T48_NOISESUPPRESSION_GCACTVINVLDADCS    13
+#define T48_NOISESUPPRESSION_GCIDLEINVLDADCS    14
+#define T48_NOISESUPPRESSION_GCMAXADCSPERX      17
+#define T48_NOISESUPPRESSION_GCLIMITMIN         18
+#define T48_NOISESUPPRESSION_GCLIMITMAX	        19
+#define T48_NOISESUPPRESSION_GCCOUNTMINTGT      20
+#define T48_NOISESUPPRESSION_MFINVLDDIFFTHR     22
+#define T48_NOISESUPPRESSION_MFINCADCSPXTHR     23
+#define T48_NOISESUPPRESSION_MFERRORTHR         25
+#define T48_NOISESUPPRESSION_SELFREQMAX         27
+#define T48_NOISESUPPRESSION_BLEN               34
+#define T48_NOISESUPPRESSION_TCHTHR             35
+#define T48_NOISESUPPRESSION_TCHDI              36
+#define T48_NOISESUPPRESSION_MOVHYSTI           37
+#define T48_NOISESUPPRESSION_MOVHYSTN           38
+#define T48_NOISESUPPRESSION_MOVFILTER          39
+#define T48_NOISESUPPRESSION_NUMTOUCH           40
+#define T48_NOISESUPPRESSION_MRGHYST            41
+#define T48_NOISESUPPRESSION_MRGTHR             42
+#define T48_NOISESUPPRESSION_XLOCLIP            43
+#define T48_NOISESUPPRESSION_XHICLIP            44
+#define T48_NOISESUPPRESSION_YLOCLIP            45
+#define T48_NOISESUPPRESSION_YHICLIP            46
+#define T48_NOISESUPPRESSION_XEDGECTRL          47
+#define T48_NOISESUPPRESSION_XEDGEDIST          48
+#define T48_NOISESUPPRESSION_YEDGECTRL          49
+#define T48_NOISESUPPRESSION_YEDGEDIST          50
+#define T48_NOISESUPPRESSION_JUMPLIMIT          51
+#define T48_NOISESUPPRESSION_TCHHYST            52
+#define T48_NOISESUPPRESSION_NEXTTCHDI          53
+
 /* cable_config[] of atmel_i2c_platform_data */
 /* config[] of atmel_config_data */
 #define CB_TCHTHR                               0
@@ -281,88 +314,47 @@ Problem NO.         Name        Time         Reason
 #define FL_XHIGRIPMAX                           3
 
 struct info_id_t {
-    uint8_t family_id;
-    uint8_t variant_id;
-    uint8_t version;
-    uint8_t build;
-    uint8_t matrix_x_size;
-    uint8_t matrix_y_size;
-    uint8_t num_declared_objects;
+	uint8_t family_id;
+	uint8_t variant_id;
+	uint8_t version;
+	uint8_t build;
+	uint8_t matrix_x_size;
+	uint8_t matrix_y_size;
+	uint8_t num_declared_objects;
 };
 
 struct object_t {
-    uint8_t object_type;
-    uint16_t i2c_address;
-    uint8_t size;
-    uint8_t instances;
-    uint8_t num_report_ids;
-    uint8_t report_ids;
+	uint8_t object_type;
+	uint16_t i2c_address;
+	uint8_t size;
+	uint8_t instances;
+	uint8_t num_report_ids;
+	uint8_t report_ids;
 };
 
 struct atmel_virtual_key {
-    int keycode;
-    int range_min;
-    int range_max;
+	int keycode;
+	int range_min;
+	int range_max;
 };
 
 struct atmel_finger_data {
-    int x;
-    int y;
-    int w;
-    int z;
+	int x;
+	int y;
+	int w;
+	int z;
 };
-
-struct atmel_i2c_platform_data {
-    uint16_t version;
-    uint16_t source;
-    uint16_t abs_x_min;
-    uint16_t abs_x_max;
-    uint16_t abs_y_min;
-    uint16_t abs_y_max;
-    uint8_t abs_pressure_min;
-    uint8_t abs_pressure_max;
-    uint8_t abs_width_min;
-    uint8_t abs_width_max;
-    int gpio_irq;
-    int (*power)(int on);
-    int8_t config_T6[6];
-    int8_t config_T7[3];
-    int8_t config_T8[10];
-    int8_t config_T9[35];
-    int8_t config_T15[11];
-    int8_t config_T19[16];
-    int8_t config_T20[12];
-    int8_t config_T22[17];
-    int8_t config_T23[15];
-    int8_t config_T24[19];
-    int8_t config_T25[14];
-    int8_t config_T27[7];
-    int8_t config_T28[6];
-    int8_t config_T40[5];
-    int8_t config_T42[8];
-    int8_t config_T46[9];
-    int8_t config_T47[10];
-    int8_t config_T48[54];
-    uint8_t object_crc[3];
-    int8_t cable_config[4];
-    int8_t cable_config_T7[3];
-    int8_t cable_config_T8[10];
-    int8_t cable_config_T9[35];
-    int8_t cable_config_T22[17];
-    int8_t cable_config_T28[6];
-    int8_t noise_config[3];
-    uint16_t filter_level[4];
-    uint8_t GCAF_level[5];
-};
+/*move the platform struct to other file*/
 
 struct atmel_config_data {
-    int8_t config[4];
-    int8_t *config_T7;
-    int8_t *config_T8;
-    int8_t *config_T9;
-    int8_t *config_T22;
-    int8_t *config_T28;
+	int8_t config[4];
+	int8_t *config_T7;
+	int8_t *config_T8;
+	int8_t *config_T9;
+	int8_t *config_T22;
+	int8_t *config_T28;
+	int8_t *config_T46;
+	int8_t *config_T48;
 };
 
 #endif
-
