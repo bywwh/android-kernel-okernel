@@ -22,7 +22,7 @@ Problem NO.         Name        Time         Reason
 #include "../../light/tmd2771.h"
 #include "../../light/apds990x.h"
 #include "../../light/ltr_558.h"
-#include "../../touchscreen/touch_platform_config.h"
+#include "linux/touch_platform_config.h"
 
 static struct regulator *regulator_st_acc_sensor = NULL;
 static struct regulator *regulator_adi_acc_sensor = NULL;
