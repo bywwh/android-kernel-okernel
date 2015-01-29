@@ -2,6 +2,12 @@
 # Makefile for the Linux proc filesystem routines.
 #
 
+# /*================================================================================
+#                          EDIT HISTORY FOR MODULE
+#      
+#  case      				who        		when         	what, where, why
+#     
+# ================================================================================*/
 obj-y   += proc.o
 
 proc-y			:= nommu.o task_nommu.o
@@ -21,6 +27,9 @@ proc-y	+= uptime.o
 proc-y	+= version.o
 proc-y	+= softirqs.o
 proc-y	+= namespaces.o
+
+proc-y	+= app_info.o
+
 proc-$(CONFIG_PROC_SYSCTL)	+= proc_sysctl.o
 proc-$(CONFIG_NET)		+= proc_net.o
 proc-$(CONFIG_PROC_KCORE)	+= kcore.o
