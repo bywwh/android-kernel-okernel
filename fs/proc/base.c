@@ -1022,11 +1022,6 @@ static ssize_t oom_adjust_write(struct file *file, const char __user *buf,
 		goto out;
 	}
 
-	if (task->signal->oom_adj == OOM_DISABLE) {
-		err = -EPERM;
-		goto out;
-	}
-
 	task_lock(task);
 	if (!task->mm) {
 		err = -EINVAL;
@@ -1058,8 +1053,6 @@ static ssize_t oom_adjust_write(struct file *file, const char __user *buf,
 	 */
 	if (task->signal->oom_adj == OOM_ADJUST_MAX)
 		task->signal->oom_score_adj = OOM_SCORE_ADJ_MAX;
-	else if (task->signal->oom_adj == OOM_DISABLE)
-		task->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;		
 	else
 		task->signal->oom_score_adj = (oom_adjust * OOM_SCORE_ADJ_MAX) /
 								-OOM_DISABLE;
@@ -1161,15 +1154,6 @@ static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 	if (!task) {
 		err = -ESRCH;
 		goto out;
-	}
-
-	if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
-		if (oom_score_adj == OOM_SCORE_ADJ_MAX) {
-			oom_score_adj = 0;
-		} else {
-			err = -EPERM;
-			goto out;
-		}
 	}
 
 	task_lock(task);

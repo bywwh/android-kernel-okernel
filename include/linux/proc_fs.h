@@ -7,6 +7,12 @@
 #include <linux/magic.h>
 #include <asm/atomic.h>
 
+/*================================================================================
+                         EDIT HISTORY FOR MODULE
+     
+ case      				who        		when         	what, where, why
+ 
+================================================================================*/
 struct net;
 struct completion;
 struct mm_struct;
@@ -103,6 +109,7 @@ struct vmcore {
 #ifdef CONFIG_PROC_FS
 
 extern void proc_root_init(void);
+extern void  proc_app_info_init(void);
 
 void proc_flush_task(struct task_struct *task);
 
