@@ -178,7 +178,7 @@ config INPUT_KEYRESET
 
 comment "Input Device Drivers"
 
-#source "drivers/input/touchscreen/Kconfig"
+source "drivers/input/touchscreen/Kconfig"
 
 source "drivers/input/keyboard/Kconfig"
 

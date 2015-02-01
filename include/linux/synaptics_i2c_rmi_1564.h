@@ -13,12 +13,7 @@
  * GNU General Public License for more details.
  *
  */
-/*==============================================================================
 
-修订历史
-
-问题单号          修改人      日期         原因
-==============================================================================*/
 #ifndef _LINUX_SYNAPTICS_I2C_RMI_H
 #define _LINUX_SYNAPTICS_I2C_RMI_H
 
@@ -28,6 +23,7 @@
 typedef __u8 u4;
 typedef __u16 u12;
 
+#define	SYNAPTICS_POWER_NAME "synaptics_ts_power"
 struct rmi_function_info {
 
 	/** This is the number of data points supported - for example, for
@@ -93,9 +89,9 @@ struct synaptics_rmi4 {
 	bool hasEgrTapAndHold;
 	bool hasEgrSingleTap;
 	bool hasEgrPalmDetect;
-        bool f11_has_Sensitivity_Adjust;
-        bool is_support_multi_touch;
-        struct f11_finger_data *f11_fingers;
+    bool f11_has_Sensitivity_Adjust;
+    bool is_support_multi_touch;
+    struct f11_finger_data *f11_fingers;
 	
 	int hasF19;
 	struct rmi_function_info f19;
@@ -105,7 +101,6 @@ struct synaptics_rmi4 {
 
 	int enable;
 };
-
 
 #endif /* _LINUX_SYNAPTICS_I2C_RMI_H */
 

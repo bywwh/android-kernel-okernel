@@ -1022,11 +1022,6 @@ static ssize_t oom_adjust_write(struct file *file, const char __user *buf,
 		goto out;
 	}
 
-	if (task->signal->oom_adj == OOM_DISABLE) {
-		err = -EPERM;
-		goto out;
-	}
-
 	task_lock(task);
 	if (!task->mm) {
 		err = -EINVAL;
@@ -1041,13 +1036,6 @@ static ssize_t oom_adjust_write(struct file *file, const char __user *buf,
 	if (oom_adjust < task->signal->oom_adj && !capable(CAP_SYS_RESOURCE)) {
 		err = -EACCES;
 		goto err_sighand;
-	}
-
-	if (oom_adjust != task->signal->oom_adj) {
-		if (oom_adjust == OOM_DISABLE)
-			atomic_inc(&task->mm->oom_disable_count);
-		if (task->signal->oom_adj == OOM_DISABLE)
-			atomic_dec(&task->mm->oom_disable_count);
 	}
 
 	/*
@@ -1065,8 +1053,6 @@ static ssize_t oom_adjust_write(struct file *file, const char __user *buf,
 	 */
 	if (task->signal->oom_adj == OOM_ADJUST_MAX)
 		task->signal->oom_score_adj = OOM_SCORE_ADJ_MAX;
-	else if (task->signal->oom_adj == OOM_DISABLE)
-		task->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;		
 	else
 		task->signal->oom_score_adj = (oom_adjust * OOM_SCORE_ADJ_MAX) /
 								-OOM_DISABLE;
@@ -1170,15 +1156,6 @@ static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 		goto out;
 	}
 
-	if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
-		if (oom_score_adj == OOM_SCORE_ADJ_MAX) {
-			oom_score_adj = 0;
-		} else {
-			err = -EPERM;
-			goto out;
-		}
-	}
-
 	task_lock(task);
 	if (!task->mm) {
 		err = -EINVAL;
@@ -1196,12 +1173,6 @@ static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 		goto err_sighand;
 	}
 
-	if (oom_score_adj != task->signal->oom_score_adj) {
-		if (oom_score_adj == OOM_SCORE_ADJ_MIN)
-			atomic_inc(&task->mm->oom_disable_count);
-		if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
-			atomic_dec(&task->mm->oom_disable_count);
-	}
 	task->signal->oom_score_adj = oom_score_adj;
 	if (has_capability_noaudit(current, CAP_SYS_RESOURCE))
 		task->signal->oom_score_adj_min = oom_score_adj;
@@ -1905,7 +1876,7 @@ static int proc_fd_info(struct inode *inode, struct path *path, char *info)
 
 			fdt = files_fdtable(files);
 			f_flags = file->f_flags & ~O_CLOEXEC;
-			if (close_on_exec(fd, fdt))
+			if (FD_ISSET(fd, fdt->close_on_exec))
 				f_flags |= O_CLOEXEC;
 
 			if (path) {
